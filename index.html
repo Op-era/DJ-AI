@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DJ Mix Master</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom scrollbar for a more modern look */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1a202c; /* gray-900 */
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #4a5568; /* gray-600 */
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #718096; /* gray-500 */
+    }
+    
+    /* Vertical Volume Faders */
+    input[type=range].fader {
+      -webkit-appearance: none; appearance: none;
+      width: 150px; height: 8px;
+      background: #1a202c; border-radius: 4px; outline: none;
+      transform-origin: 75px 75px; transform: rotate(-90deg);
+    }
+    input[type=range].fader::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 24px; height: 24px;
+      background: #cbd5e0; cursor: pointer; border-radius: 50%;
+      border: 2px solid #2d3748;
+    }
+
+    /* Horizontal Crossfader */
+    input[type=range].crossfader {
+      -webkit-appearance: none; appearance: none;
+      width: 100%; height: 12px;
+      background: #1a202c; border-radius: 6px; outline: none;
+    }
+    input[type=range].crossfader::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 20px; height: 32px;
+      background: #4a5568; cursor: pointer; border-radius: 3px;
+      border: 2px solid #2d3748;
+    }
+
+    /* Improved Toggle Switches */
+    input[type=checkbox].toggle:checked + div {
+        background-color: #2dd4bf; /* teal-400 */
+    }
+    input[type=checkbox].toggle:checked + div > div {
+        transform: translateX(100%);
+        background-color: #1a202c;
+    }
+    
+    /* Rotary Knob Styling */
+    .knob-container {
+      position: relative;
+      width: 40px; height: 40px;
+    }
+    .knob {
+      -webkit-appearance: none; appearance: none;
+      width: 40px; height: 40px;
+      background-color: transparent;
+      border-radius: 50%;
+      position: absolute;
+      cursor: ns-resize;
+    }
+    .knob::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 0; height: 0;
+    }
+    .knob-visual {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background-color: #2d3748; /* gray-800 */
+      border: 2px solid #4a5568; /* gray-600 */
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .knob-visual::after {
+      content: '';
+      position: absolute;
+      width: 2px;
+      height: 12px;
+      background-color: #a0aec0; /* gray-400 */
+      top: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    /* Tutorial Overlay Styling - FIXED */
+    .tutorial-backdrop {
+      position: absolute;
+      inset: 0;
+      background-color: rgba(0,0,0,0.7);
+      z-index: 50;
+    }
+    .tutorial-highlight {
+      position: absolute;
+      border-radius: 8px;
+      /* This creates the "hole" by shadowing everything EXCEPT the element */
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.7);
+      transition: all 0.3s ease-in-out;
+      pointer-events: none;
+    }
+    .tutorial-popup {
+      position: absolute;
+      transition: all 0.3s ease-in-out;
+      z-index: 51; /* Must be above the backdrop */
+    }
+    .tutorial-arrow {
+      position: absolute;
+      width: 0;
+      height: 0;
+      border-style: solid;
+    }
+    .tutorial-arrow.arrow-top {
+      border-width: 0 8px 8px 8px;
+      border-color: transparent transparent #2d3748 transparent;
+      top: -8px; left: 50%; transform: translateX(-50%);
+    }
+    .tutorial-arrow.arrow-bottom {
+      border-width: 8px 8px 0 8px;
+      border-color: #2d3748 transparent transparent transparent;
+      bottom: -8px; left: 50%; transform: translateX(-50%);
+    }
+    .tutorial-arrow.arrow-left {
+      border-width: 8px 8px 8px 0;
+      border-color: transparent #2d3748 transparent transparent;
+      left: -8px; top: 50%; transform: translateY(-50%);
+    }
+    .tutorial-arrow.arrow-right {
+      border-width: 8px 0 8px 8px;
+      border-color: transparent transparent transparent #2d3748;
+      right: -8px; top: 50%; transform: translateY(-50%);
+    }
+
+  </style>
+<script type="importmap">
+{
+  "imports": {
+    "rxjs": "https://aistudiocdn.com/rxjs@^7.8.2?conditions=es2015",
+    "rxjs/operators": "https://aistudiocdn.com/rxjs@^7.8.2/operators?conditions=es2015",
+    "rxjs/ajax": "https://aistudiocdn.com/rxjs@^7.8.2/ajax?conditions=es2015",
+    "rxjs/webSocket": "https://aistudiocdn.com/rxjs@^7.8.2/webSocket?conditions=es2015",
+    "rxjs/testing": "https://aistudiocdn.com/rxjs@^7.8.2/testing?conditions=es2015",
+    "rxjs/fetch": "https://aistudiocdn.com/rxjs@^7.8.2/fetch?conditions=es2015",
+    "@angular/compiler": "https://next.esm.sh/@angular/compiler@^20.3.6?external=rxjs",
+    "@angular/forms": "https://next.esm.sh/@angular/forms@^20.3.6?external=rxjs",
+    "@angular/core": "https://next.esm.sh/@angular/core@^20.3.6?external=rxjs",
+    "@angular/common": "https://next.esm.sh/@angular/common@^20.3.6?external=rxjs",
+    "@angular/common/http": "https://next.esm.sh/@angular/common@^20.3.6/http?external=rxjs",
+    "@angular/platform-browser": "https://next.esm.sh/@angular/platform-browser@^20.3.6?external=rxjs",
+    "@google/genai": "https://esm.sh/@google/genai"
+  }
+}
+</script>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script src="https://sdk.scdn.co/spotify-player.js"></script>
+<script>
+!function(e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e():"function"==typeof define&&define.amd?define([],e):("undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this).jsmediatags=e()}(function(){return function e(t,r,n){function i(s,a){if(!r[s]){if(!t[s]){var c="function"==typeof require&&require;if(!a&&c)return c(s,!0);if(o)return o(s,!0);var u=new Error("Cannot find module '"+s+"'");throw u.code="MODULE_NOT_FOUND",u}var l=r[s]={exports:{}};t[s][0].call(l.exports,function(e){var r=t[s][1][e];return i(r?r:e)},l,l.exports,e,t,r,n)}return r[s].exports}for(var o="function"==typeof require&&require,s=0;s<n.length;s++)i(n[s]);return i}({1:[function(e,t,r){function n(e,t){this._array=e,this._mediaType=t,this._isInitialized=!1,this._size=this._array.length}var i=e("./MediaTagReader");n.prototype.init=function(e){var t=this;setTimeout(function(){t._isInitialized=!0,e.callback()},0)},n.prototype.getByteAt=function(e){return this._array[e]},n.prototype.getBytesAt=function(e,t){for(var r=new Array(t),n=0;n<t;n++)r[n]=this._array[e+n];return r},n.prototype.getSize=function(){return this._size},n.prototype.getMimeType=function(){return this._mediaType},n.prototype.isInitialized=function(){return this._isInitialized},n.getTagReader=function(e,t){t.onSuccess(new i(e))},t.exports=n},{}],2:[function(e,t,r){function n(e){this._blob=e,this._isInitialized=!1,this._size=this._blob.size}var i=e("./MediaFileReader");n.prototype=new i;n.prototype.init=function(e){this._isInitialized=!0,e.callback()},n.prototype.getByteAt=function(e){var t=this.getBytesAt(e,1);return t[0]},n.prototype.getBytesAt=function(e,t){var r=this._blob.slice(e,e+t),n=new FileReaderSync;return new Uint8Array(n.readAsArrayBuffer(r))},n.prototype.getSize=function(){return this._size},n.prototype.isInitialized=function(){return this._isInitialized},t.exports=n},{MediaFileReader:"./MediaFileReader"}],3:[function(e,t,r){function n(e,t){var r=a(e,0,Math.min(t,e.getSize()));s.load(r,{onSuccess:function(n){e.clear(),e.add("jfif",r),n.onSuccess(function(){var i=n.getFrame("APP1");if(i){var o=a(e,0,e.getSize());s.load(o,{onSuccess:t.onSuccess,onError:t.onError,eagerRange:e.getSize()})}else t.onSuccess()})},onError:t.onError})}function i(e,t){n(e,{onSuccess:function(){var r=e.getFrame("JFIF");if(r){var n=o(e);n.onSuccess(function(){t.onSuccess()})}else t.onSuccess()},onError:t.onError})}function o(e){var t=e.getFrameOffset("JFIF")+10,r=e.getShortAt(t,!0),n=e.getShortAt(t+2,!0);e.add("width",r),e.add("height",n)}function s(e){this._file=e}var a=e("./ChunkedFileData");s.prototype.load=function(e){var t=this,r=this._file;r.loadRange(e,{onSuccess:function(){t.parse(e),e.onSuccess()},onError:e.onError})},s.prototype.parse=function(e){var t,r=e.getByteAt(0),n=e.getByteAt(1);if(255===r&&216===n)return e.add("format","jpeg"),this.findNextMarker(e,2)},s.prototype.findNextMarker=function(e,t){var r=this;if(t>=e.getSize())return!1;var n=e.getByteAt(t);if(255!==n)return!1;var i=e.getByteAt(t+1);if(217===i)return!1;var o=this.readMarker(e,t);return o?void this.findNextMarker(e,o.offset):void setTimeout(function(){r.findNextMarker(e,t+1)},0)},s.prototype.readMarker=function(e,t){switch(e.getByteAt(t+1)){case 224:if("JFIF"===e.getStringAt(t+4,4))return{offset:t+2+e.getShortAt(t+2,!0),name:"JFIF",structure:this.readExif(e,t)}}},s.load=function(e,t){new s(e).load(t)},s.canRead=function(e){return"jpeg"===e.getFormat()},t.exports=s},{ChunkedFileData:"./ChunkedFileData"}],4:[function(e,t,r){function n(){this._fileData=new i,this._frames=[],this._offset=0,this._data=null}var i=e("./ChunkedFileData");n.prototype.add=function(e,t){if("object"!=typeof e){var r={};r[e]=t,e=r}for(var n in e)e.hasOwnProperty(n)&&(this._frames[n]=e[n])},n.prototype.get=function(e){return e?this._frames[e]:this._frames},n.prototype.getFrame=n.prototype.get,n.prototype.getFrameOffset=function(e){var t=this.getFrame(e);return t?t.offset:-1},n.prototype.clear=function(){this._frames=[],this._fileData.clear()},n.prototype.getOffset=function(){return this._offset},n.prototype.getData=function(){return this._data},n.prototype.setData=function(e){this._data=e},n.prototype.setOffset=function(e){this._offset=e},n.prototype.hasData=function(e){var t=this._fileData.hasDataRange(this.getOffset(),e);return t},n.prototype.getByteAt=function(e){return this._fileData.getByteAt(e)},n.prototype.getBytesAt=function(e,t){return this._fileData.getBytesAt(e,t)},n.prototype.isBitSetAt=function(e,t){var r=this.getByteAt(e);return(r&1<<t)>>t==1},n.prototype.getSByteAt=function(e){var t=this.getByteAt(e);return t>127?t-256:t},n.prototype.getShortAt=function(e,t){var r=this.getByteAt(e),n=this.getByteAt(e+1),i=t?r<<8|n:n<<8|r;return i<0&&(i+=65536),i},n.prototype.getSShortAt=function(e,t){var r=this.getShortAt(e,t);return r>32767?r-65536:r},n.prototype.getLongAt=function(e,t){var r=this.getByteAt(e),n=this.getByteAt(e+1),i=this.getByteAt(e+2),o=this.getByteAt(e+3),s=t?(((r<<8)+n<<8)+i<<8)+o:(((o<<8)+i<<8)+n<<8)+r;return s<0&&(s+=4294967296),s},n.prototype.getSLongAt=function(e,t){var r=this.getLongAt(e,t);return r>2147483647?r-4294967296:r},n.prototype.getInteger24At=function(e,t){var r=this.getByteAt(e),n=this.getByteAt(e+1),i=this.getByteAt(e+2),o=t?(r<<8|n)<<8|i:(i<<8|n)<<8|r;return o<0&&(o+=16777216),o},n.prototype.getStringAt=function(e,t){for(var r=this.getBytesAt(e,t),n="",i=0;i<t;i++)n+=String.fromCharCode(r[i]);return n},n.prototype.getStringWithCharsetAt=function(e,t,r){var n=this.getBytesAt(e,t),i;switch(r.toLowerCase()){case"utf-16":case"utf-16le":case"ucs-2":i=this.readUTF16String(n);break;case"utf-16be":i=this.readUTF16String(n,!0);break;case"utf-8":i=this.readUTF8String(n);break;default:i=this.readNullTerminatedString(n)}return i},n.prototype.getCharAt=function(e){return this.getStringAt(e,1)},n.prototype.readNullTerminatedString=function(e){for(var t="",r=0;r<e.length;r++){var n=e[r];if(0===n)break;t+=String.fromCharCode(n)}return t},n.prototype.readUTF8String=function(e){var t="";try{t=decodeURIComponent(escape(this.readNullTerminatedString(e)))}catch(r){t=this.readNullTerminatedString(e)}return t},n.prototype.readUTF16String=function(e,t){for(var r="",n=0,i=1,o=0;o<e.length;o+=2){var s=null;if(t){n=e[o],i=e[o+1]}else{n=e[o+1],i=e[o]}s=n<<8|i;if(0===s)break;r+=String.fromCharCode(s)}return r},t.exports=n},{ChunkedFileData:"./ChunkedFileData"}],5:[function(e,t,r){function n(e,t){t=t||{};var r=e.length,n=t.offset||0,i=t.length||r-n;this._view=e,this._offset=n,this._length=i}n.prototype.getByteAt=function(e){return this._view.getUint8(this._offset+e)},n.prototype.getBytesAt=function(e,t){for(var r=new Array(t),n=0;n<t;n++)r[n]=this.getByteAt(e+n);return r},n.prototype.isBitSetAt=function(e,t){var r=this.getByteAt(e);return(r&1<<t)>>t==1},n.prototype.getSByteAt=function(e){var t=this.getByteAt(e);return t>127?t-256:t},n.prototype.getShortAt=function(e,t){return this._view.getUint16(this._offset+e,t)},n.prototype.getSShortAt=function(e,t){return this._view.getInt16(this._offset+e,t)},n.prototype.getLongAt=function(e,t){return this._view.getUint32(this._offset+e,t)},n.prototype.getSLongAt=function(e,t){return this._view.getInt32(this._offset+e,t)},n.prototype.getInteger24At=function(e,t){var r=this.getByteAt(e),n=this.getByteAt(e+1),i=this.getByteAt(e+2),o=t?(r<<8|n)<<8|i:(i<<8|n)<<8|r;return o<0&&(o+=16777216),o},n.prototype.getStringAt=function(e,t){for(var r=[],n=0;n<t;n++)r[n]=this.getByteAt(e+n);return String.fromCharCode.apply(null,r)},n.prototype.getStringWithCharsetAt=function(e,t,r){var n=this.getBytesAt(e,t),i;switch(r.toLowerCase()){case"utf-16":case"utf-16le":case"ucs-2":i=this.readUTF16String(n);break;case"utf-16be":i=this.readUTF16String(n,!0);break;case"utf-8":i=this.readUTF8String(n);break;default:i=this.readNullTerminatedString(n)}return i},n.prototype.getCharAt=function(e){return this.getStringAt(e,1)},n.prototype.readNullTerminatedString=function(e){for(var t="",r=0;r<e.length;r++){var n=e[r];if(0===n)break;t+=String.fromCharCode(n)}return t},n.prototype.readUTF8String=function(e){var t=this.readNullTerminatedString(e);try{t=decodeURIComponent(escape(t))}catch(r){}return t},n.prototype.readUTF16String=function(e,t){for(var r="",n=0,i=1,o=0;o<e.length;o+=2){var s=null;if(t){n=e[o],i=e[o+1]}else{n=e[o+1],i=e[o]}s=n<<8|i;if(0===s)break;r+=String.fromCharCode(s)}return r},t.exports=n},{}],6:[function(e,t,r){function n(e,t){this._file=e,this._isInitialized=!1,this._size=0,this._isRangeRequestSupported=!1,this._isSeekingSupported=!1,this._onInitializedCallback=t||function(){}}var i=e("./MediaFileReader"),o=e("xhr2");n.prototype=new i;var s=1;n.prototype.init=function(e){var t=this;this._sendRequest("HEAD",function(r){var n=r.getResponseHeader("Content-Length");t._size=parseInt(n,10),t._isInitialized=!0,e.callback()})},n.prototype.getByteAt=function(e){var t;this.getBytesAt(e,1,function(e){t=e[0]});return t},n.prototype.getBytesAt=function(e,t,r){this._getRange(e,t,function(e){r(e.responseBody)})},n.prototype.loadRange=function(e,t){var r=this;this._getRange(e[0],e[1]-e[0]+1,function(e){for(var n=new Array(e.responseBody.length),i=0;i<n.length;i++)n[i]=String.fromCharCode(e.responseBody[i]);r._fileData.addData(e[0],n),t.onSuccess()})},n.prototype._getRange=function(e,t,r){var n;t=-1==t?this._size-e:t;var i=this;this._sendRequest("GET",function(o){n=o;var s=i._roundRange(e,t);i._isRangeRequestSupported=!0,i._sendRequest("GET",function(e){n=e},s)},{Range:"bytes="+e+"-"})},n.prototype._roundRange=function(e,t){var r=Math.floor(e/s)*s,n=r+t+e%s;return{offset:r,length:n-r+1}},n.prototype._sendRequest=function(e,t,r){var n=new o;n.open(e,this._file),n.overrideMimeType("text/plain; charset=x-user-defined");if(r)for(var i in r)n.setRequestHeader(i,r[i]);n.onreadystatechange=function(){4==n.readyState&&(200==n.status||206==n.status?t(n):this._handleError())},n.send(null)},n.prototype._handleError=function(e){if(this.onerror)this.onerror({type:e,info:""})},t.exports=n},{MediaFileReader:"./MediaFileReader",xhr2:"xhr2"}],7:[function(e,t,r){function n(e,t){this._path=e,this._size=0,this._isInitialized=!1,this._reader=new FileReader,this._file=null}var i=e("fs"),o=e("./MediaFileReader");n.prototype=new o;n.prototype.init=function(e){var t=this;i.stat(this._path,function(r,n){if(r)return void(t.onerror&&t.onerror(r));t._size=n.size,i.open(t._path,"r",function(r,n){if(r)return void(t.onerror&&t.onerror(r));t._file=n,t._isInitialized=!0,e.callback()})})},n.prototype.getByteAt=function(e){var t=new Buffer(1);this.getBytesAt(e,1,function(e){t=e});return t.readUInt8(0)},n.prototype.getBytesAt=function(e,t,r){var n=new Buffer(t);i.read(this._file,n,0,t,e,function(e,t,n){r(Array.prototype.slice.call(n,0,t))})},n.prototype.loadRange=function(e,t){var r=this,n=e[1]-e[0]+1;this.getBytesAt(e[0],n,function(e){r._fileData.addData(e[0],e),t.onSuccess()})},n.prototype.isInitialized=function(){return this._isInitialized},n.prototype.getSize=function(){return this._size},t.exports=n},{fs:"fs",MediaFileReader:"./MediaFileReader"}],8:[function(e,t,r){function n(e){return 127>=e}function i(e,t,r,o,s){for(var a=0;a<s.length;a++){var c=s.charCodeAt(a);if(c>127)break;r[o+a]=c}return s.length}function o(e,t,r,o,s){for(var a=0;a<s.length;a++){var c=s.charCodeAt(a);c>255?c=63:c<128&&(r[o+a*2]=0,r[o+a*2+1]=c),r[o+a*2]=c>>8,r[o+a*2+1]=255&c}return 2*s.length}function s(e,t,r,o,a){for(var c=0;c<a.length;c++){var u=a.charCodeAt(c);r[o+c]=u}return a.length}function a(e,t,r,o,a){var c=e.getTextEncoder(t,"UTF8");return c.encode(a,r,o),c.getEncodedText()}function c(e,t,r,o,a){var c=e.getTextEncoder(t,"UTF16");return c.encode(a,r,o),c.getEncodedText()}function u(e,t,r,o,a){var c=e.getTextEncoder(t,"UTF16BE");return c.encode(a,r,o),c.getEncodedText()}var l={};l.frames={TPE1:"artist",TPE2:"artist",TPE3:"artist",TPE4:"artist",TPUB:"publisher",TRCK:"track",TALB:"album",TIT2:"title",TYER:"year",TCON:"genre",APIC:"picture",USLT:"lyrics",COMM:"comment",TXXX:"user_defined_text",WXXX:"user_defined_url"},l.GENERIC_TEXT={encoding:n,get:s,set:i},l.GENERIC_URL={encoding:n,get:s,set:i},l.USER_DEFINED_URL={encoding:n,get:function(e,t,r,n){var i=this.findZero(e,t+r,n);return e.getStringAt(t+r,i-t-r)},set:i},l.USER_DEFINED_TEXT={encoding:n,get:function(e,t,r,n){if(0==r)return"";var i=this.findZero(e,t+r,n);return e.getStringAt(t+r,i-t-r)},set:i},l.UNICODE_TEXT={encoding:n,get:s,set:function(e,t,r,n,i,s){var a=e.getByteAt(t+r);switch(a){case 0:return o(e,t,n,i,s);case 1:return c(e,t,n,i,s);case 2:return u(e,t,n,i,s);case 3:return a(e,t,n,i,s)}}},l.PICTURE={get:function(e,t,r){var n=e.getByteAt(t),i=this.findZero(e,t+1),o=e.getStringAt(t+1,i-t-1),s=this.findZero(e,i+1),a={format:o,type:this.APIC_TYPES[e.getByteAt(i+1)],description:e.getStringAt(i+2,s-i-2),data:e.getBytesAt(s+1,t+r-(s+1))};return a},set:function(e,t,r,n,a){var s=e.getTextEncoder(t,"ISO-8859-1");s.encode(a.format);var c=s.getEncodedText(),u=e.getTextEncoder(t,"ISO-8859-1");u.encode(a.description);var l=u.getEncodedText(),d=r.length+c.length+1+1+l.length+1+a.data.length;r[d]=0;var f=0;return r[f++]=0,f+=s.encode(a.format,r,f),r[f++]=0,r[f++]=a.type,f+=u.encode(a.description,r,f),r[f++]=0,f+=this.setText(a.data,r,f),d}},l.getFrameReader=function(e){return this.frames[e]},t.exports=l},{}],9:[function(e,t,r){function n(e,t){this._mediaFileReader=e,this._tags=t}function i(e){var t=e.getLongAt(0,!0),r=e.getStringAt(4,4);if("d"===r[0]&&"a"===r[1]&&"s"===r[2]&&"h"===r[3]){var n=e.getLongAt(8,!0),i=12+n;e.loadRange([i,e.getSize()],{onSuccess:function(){var r=new o(e);r.readTagsFromHeader(function(r){var n="tags"in r?r.tags:{};e.setTags(n)})},onError:e.onError})}var o=e("./ID3v2TagReader");n.prototype.read=function(e){this._mediaFileReader.init({onSuccess:this._loadData.bind(this,e),onError:e.onError})},n.prototype._loadData=function(e){var t=this,r=this._mediaFileReader.getSize();o.loadData(this._mediaFileReader,{onSuccess:function(n){t._tags=n.getTags(),i(t,e)},onError:function(n){e.onSuccess(t.getTags())}})},n.prototype.getTags=function(){return this._tags},n.getTagReader=function(e,t){return new o(e)},t.exports=n},{ID3v2TagReader:"./ID3v2TagReader"}],10:[function(e,t,r){function n(e,t){this._file=e,this._tags=t||{}}n.prototype.read=function(e){var t=this,r=this._file;r.init({onSuccess:function(){o.loadData(r,{onSuccess:function(i){s.loadData(r,{onSuccess:function(o){a.loadData(r,{onSuccess:function(s){t._tags=s.getTags(),e.onSuccess(t.getTags())},onError:e.onError})},onError:e.onError})},onError:e.onError})},onError:e.onError})},n.prototype.getTags=function(){return this._tags},n.getTagReader=function(e){return new n(e)};var i=e("./MediaTagReader"),o=e("./ID3v2TagReader"),s=e("./MP4TagReader"),a=e("./FLACReader");t.exports=n},{MediaTagReader:"./MediaTagReader",ID3v2TagReader:"./ID3v2TagReader",MP4TagReader:"./MP4TagReader",FLACReader:"./FLACReader"}],11:[function(e,t,r){function n(e,t,r){this._reader=e,this.major=t,this.revision=r}function i(e){var t=e.getLongAt(0,!0),r=e.getStringAt(4,4);if("fLaC"!==r)return!1;var i=new n(e);return i.read(),i}var o=e("./Picture");n.prototype.read=function(){var e=this._reader,t=e.getByteAt(4);this.isLast=!((127&t)>>7==0),this.type=127&t,this.length=e.getInteger24At(5,!0),this.offset=8},n.prototype.parse=function(e,t){var r=this;switch(r.type){case 0:r.info=r.parseStreamInfo(e);break;case 4:r.vorbis_comment=r.parseVorbisComment(e);break;case 6:r.picture=r.parsePicture(e)}t.onSuccess()},n.prototype.parseStreamInfo=function(e){var t=e.getShortAt(this.offset,t);this.min_block_size=e.getShortAt(10,!0),this.max_block_size=e.getShortAt(12,!0),this.min_frame_size=e.getInteger24At(14,!0),this.max_frame_size=e.getInteger24At(17,!0);var r=e.getLongAt(20,!0);this.sample_rate=(4294967295&r)>>12,this.channels=((4294967295&r)>>9)%8+1,this.bits_per_sample=((4294967295&r)>>4)%32+1,this.total_samples=(4294967295&r)%16},n.prototype.parseVorbisComment=function(e){var t=e.getLongAt(this.offset,!1);this.vendor=e.getStringWithCharsetAt(this.offset+4,t,"UTF-8");var r=e.getLongAt(this.offset+4+t,!1);this.comments=new Array(r);for(var n=0;r>n;n++){var i=e.getLongAt(this.offset+4+t+4+4*n,!1);this.comments[n]=e.getStringWithCharsetAt(this.offset+4+t+4+4*n+4,i,"UTF-8")}return this._parseData(this.comments)},n.prototype._parseData=function(e){for(var t={},r=0;r<e.length;r++){var n=e[r].split("=");t[n[0].toUpperCase()]=n.slice(1).join("=")}return t},n.prototype.parsePicture=function(e){var t=e.getLongAt(this.offset,!0);this.picture=new o(e,this.offset+4,t,!1)},n.prototype.findPicture=function(){},t.exports=i},{Picture:"./Picture"}],12:[function(e,t,r){function n(){}var i=e("./ChunkedFileData"),o=e("./MediaFileReader"),s=e("./MediaTagReader"),a=["ID3v2","ID3v1","MP4","FLAC"];n.prototype.read=function(e,t){new s(e).read(t)},n.prototype.loadTags=function(e,t,r){r=r||{};var n=new XMLHttpRequest;n.open("GET",e,!0),n.onload=function(e){if(this.status>=200&&this.status<300||0===this.status){var i=this.response,o=new Blob([i]),s=new FileReader;s.onload=function(e){var i=e.target.result,s=new r.dataReader(i);(new r.tagReader(s)).read(t)},s.readAsArrayBuffer(o)}else t.onError({type:"xhr",xhr:this})},n.onerror=function(){t.onError({type:"xhr",xhr:this})},n.responseType="arraybuffer",n.send()},n.prototype.Reader=o,n.prototype.TagReader=s,t.exports=new n},{MediaFileReader:"./MediaFileReader",MediaTagReader:"./MediaTagReader",ChunkedFileData:"./ChunkedFileData"}],13:[function(e,t,r){t.exports=e("./MediaTags")},{MediaTags:"./MediaTags"}],14:[function(e,t,r){function n(e,t){var r,n,i=this.getFrameHeaderSize(e),o=e.getByteAt(t+i);if(!(o>3||-1===["ISO-8859-1","UTF-16","UTF-16BE","UTF-8"].indexOf(this.TEXT_ENCODINGS[o])))return this.getFrameSize(e,t,i)}var i=e("./MediaTagReader"),o=e("./ID3v2FrameReader");t.exports=i.addTagReader(function(){this.format="ID3v1",this.version="1.1",this.genres=["Blues","Classic Rock","Country","Dance","Disco","Funk","Grunge","Hip-Hop","Jazz","Metal","New Age","Oldies","Other","Pop","R&B","Rap","Reggae","Rock","Techno","Industrial","Alternative","Ska","Death Metal","Pranks","Soundtrack","Euro-Techno","Ambient","Trip-Hop","Vocal","Jazz+Funk","Fusion","Trance","Classical","Instrumental","Acid","House","Game","Sound Clip","Gospel","Noise","AlternRock","Bass","Soul","Punk","Space","Meditative","Instrumental Pop","Instrumental Rock","Ethnic","Gothic","Darkwave","Techno-Industrial","Electronic","Pop-Folk","Eurodance","Dream","Southern Rock","Comedy","Cult","Gangsta","Top 40","Christian Rap","Pop/Funk","Jungle","Native American","Cabaret","New Wave","Psychadelic","Rave","Showtunes","Trailer","Lo-Fi","Tribal","Acid Punk","Acid Jazz","Polka","Retro","Musical","Rock & Roll","Hard Rock","Folk","Folk-Rock","National Folk","Swing","Fast Fusion","Bebob","Latin","Revival","Celtic","Bluegrass","Avantgarde","Gothic Rock","Progressive Rock","Psychedelic Rock","Symphonic Rock","Slow Rock","Big Band","Chorus","Easy Listening","Acoustic","Humour","Speech","Chanson","Opera","Chamber Music","Sonata","Symphony","Booty Bass","Primus","Porn Groove","Satire","Slow Jam","Club","Tango","Samba","Folklore","Ballad","Power Ballad","Rhythmic Soul","Freestyle","Duet","Punk Rock","Drum Solo","A capella","Euro-House","Dance Hall"],this.getTags=function(e,t){var r=e.getSize()-128,n=e.getStringAt(r,3);if("TAG"!==n)return!1;var i=e.getStringAt(r+3,30).replace(/\0/g,"")||"",o=e.getStringAt(r+33,30).replace(/\0/g,"")||"",s=e.getStringAt(r+63,30).replace(/\0/g,"")||"",a=e.getStringAt(r+93,4).replace(/\0/g,"")||"",c=e.getByteAt(r+125),u=e.getByteAt(r+126);if(0==c&&0!=u){this.version="1.1";var l=u}else var l=0;var d=e.getStringAt(r+97,28).replace(/\0/g,"")||"";return{type:this.format,version:this.version,tags:{title:i,artist:o,album:s,year:a,comment:d,track:l,genre:this.genres[e.getByteAt(r+127)]}}}})
+</script>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans overflow-hidden">
+  <app-root></app-root>
+</body>
+</html>

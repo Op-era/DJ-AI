@@ -1,0 +1,7 @@
+{
+  "name": "DJ Mix Master",
+  "description": "An app to curate your song library, organize tracks by BPM and key, and get AI-powered suggestions for seamless blends using local Ollama models.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
